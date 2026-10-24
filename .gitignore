@@ -1,0 +1,15 @@
+# File editor
+.vscode/
+.DS_Store
+Thumbs.db
+
+# File konfigurasi rahasia
+.env
+
+# Foto upload lokal
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# Jangan unggah file cadangan
+*.bak
+*.log
