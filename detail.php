@@ -1,118 +1,80 @@
 <?php
-require_once __DIR__ . '/config/koneksi.php';
-require_once __DIR__ . '/includes/auth.php';
-
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-$stmt = $pdo->prepare("
-    SELECT items.*, categories.nama AS nama_kategori
-    FROM items
-    LEFT JOIN categories
-        ON items.kategori_id = categories.id
-    WHERE items.id = ?
-");
-
-$stmt->execute([$id ?: 0]);
-$item = $stmt->fetch();
-
-if (!$item) {
+require_once 'includes/auth.php';
+$id = (int)($_GET['id'] ?? 0);
+$b = db_one(
+    'SELECT b.*, k.nama AS kategori FROM barang b
+     LEFT JOIN kategori k ON k.id = b.kategori_id WHERE b.id = ?', 'i', [$id]
+);
+$u = user();
+$bolehLihat = $b && ($b['verifikasi'] === 'disetujui'
+    || ($u && (in_array($u['role'], ['admin', 'superadmin'], true) || (int)$b['created_by'] === (int)$u['id'])));
+if (!$bolehLihat) {
     http_response_code(404);
-    $pageTitle = 'Laporan Tidak Ditemukan';
-    require __DIR__ . '/includes/header.php';
-    ?>
-
-    <div class="empty">
-        <h1>Laporan tidak ditemukan</h1>
-        <p>Barang tersebut mungkin sudah dihapus.</p>
-        <a href="index.php" class="btn">Kembali ke Beranda</a>
-    </div>
-
-    <?php
-    require __DIR__ . '/includes/footer.php';
+    $judul = 'Barang tidak ditemukan';
+    require 'includes/header.php';
+    echo '<div class="container py-5"><div class="empty-state"><i class="bi bi-question-circle"></i>
+          <h3>Laporan tidak ditemukan</h3><p>Laporan ini mungkin sudah dihapus oleh admin.</p>
+          <a class="btn btn-primary-ink" href="' . url('barang.php') . '">Kembali ke daftar</a></div></div>';
+    require 'includes/footer.php';
     exit;
 }
+$judul = $b['judul'];
+require 'includes/header.php';
 
-$pageTitle = $item['judul'];
-require __DIR__ . '/includes/header.php';
+$label = $b['status'] === 'hilang' ? 'Hilang pada' : 'Ditemukan pada';
 ?>
+<div class="container page-pad">
+  <?php if ($b['verifikasi'] !== 'disetujui'): ?>
+    <div class="alert alert-<?= $b['verifikasi'] === 'ditolak' ? 'danger' : 'warning' ?> mb-3">
+      <strong>Laporan ini belum tampil untuk publik.</strong>
+      <?= $b['verifikasi'] === 'ditolak' ? 'Ditolak admin' . ($b['catatan_admin'] ? ': ' . e($b['catatan_admin']) : '.') : 'Menunggu verifikasi admin.' ?>
+    </div>
+  <?php endif; ?>
+  <a class="back-link" href="<?= url('barang.php') ?>"><i class="bi bi-arrow-left me-1"></i>Kembali ke daftar</a>
 
-<div class="actions">
-    <a href="index.php" class="btn btn-secondary">
-        ← Kembali
-    </a>
-</div>
-
-<div class="detail-layout" style="margin-top:25px">
-
-    <div class="item-image">
-        <?php
-        $fotoPath = __DIR__ . '/assets/uploads/' .
-            ($item['foto'] ?? '');
-
-        if (!empty($item['foto']) && is_file($fotoPath)):
-        ?>
-            <img
-                src="assets/uploads/<?= e($item['foto']) ?>"
-                alt="<?= e($item['judul']) ?>"
-            >
+  <div class="row g-4 g-lg-5 mt-1">
+    <div class="col-md-5">
+      <div class="detail-photo">
+        <?php if ($b['foto']): ?>
+          <img src="<?= url('assets/uploads/' . e($b['foto'])) ?>" alt="Foto <?= e($b['judul']) ?>">
         <?php else: ?>
-            🔎
+          <i class="bi <?= kategori_icon($b['kategori']) ?>"></i>
+          <small>Belum ada foto</small>
         <?php endif; ?>
+      </div>
     </div>
 
-    <div>
-        <span class="tag">
-            <?= e($item['nama_kategori'] ?? 'Lainnya') ?>
-        </span>
+    <div class="col-md-7">
+      <span class="status status-inline status-<?= e($b['status']) ?>"><?= status_label($b['status']) ?></span>
+      <h1 class="detail-title"><?= e($b['judul']) ?></h1>
 
-        <span class="status <?= $item['status'] === 'hilang'
-            ? 'status-hilang'
-            : ($item['status'] === 'dikembalikan'
-                ? 'status-dikembalikan' : '') ?>">
-            <?= e(ucfirst($item['status'])) ?>
-        </span>
+      <dl class="detail-list">
+        <div><dt><i class="bi bi-tag"></i>Kategori</dt><dd><?= e($b['kategori'] ?? 'Lainnya') ?></dd></div>
+        <div><dt><i class="bi bi-geo-alt"></i>Lokasi</dt><dd><?= e($b['lokasi'] ?: '-') ?></dd></div>
+        <div><dt><i class="bi bi-calendar3"></i><?= $label ?></dt><dd><?= tgl($b['tanggal']) ?></dd></div>
+      </dl>
 
-        <h1><?= e($item['judul']) ?></h1>
+      <?php if ($b['deskripsi']): ?>
+        <h2 class="h6 mt-4">Ciri-ciri dan keterangan</h2>
+        <p class="detail-desc"><?= nl2br(e($b['deskripsi'])) ?></p>
+      <?php endif; ?>
 
-        <p class="muted">
-            Jenis: <?= e(ucfirst($item['jenis'])) ?>
-        </p>
-
-        <div class="panel">
-            <h3>Deskripsi Barang</h3>
-
-            <p><?= nl2br(e($item['deskripsi'])) ?></p>
-
-            <p>
-                <strong>Lokasi:</strong>
-                <?= e($item['lokasi']) ?>
-            </p>
-
-            <p>
-                <strong>Tanggal:</strong>
-                <?= e(date(
-                    'd-m-Y',
-                    strtotime($item['tanggal_kejadian'])
-                )) ?>
-            </p>
-
-            <p>
-                <strong>Kategori:</strong>
-                <?= e($item['nama_kategori'] ?? 'Lainnya') ?>
-            </p>
-
-            <p>
-                <strong>Kontak:</strong>
-                <?= e($item['kontak']) ?>
-            </p>
+      <?php if ($b['status'] === 'dikembalikan'): ?>
+        <div class="contact-box done">
+          <i class="bi bi-check-circle-fill"></i>
+          <div><strong>Barang ini sudah dikembalikan.</strong><br>Tidak perlu menghubungi pelapor lagi.</div>
         </div>
-
-        <p class="small muted">
-            Pastikan kepemilikan barang sebelum menyerahkannya.
-            Gunakan informasi kontak secara bertanggung jawab.
-        </p>
+      <?php else: ?>
+        <div class="contact-box">
+          <i class="bi bi-chat-dots-fill"></i>
+          <div>
+            <strong><?= $b['status'] === 'hilang' ? 'Pernah melihat barang ini?' : 'Ini barang milikmu?' ?></strong><br>
+            Hubungi: <span class="contact-value"><?= e($b['kontak'] ?: 'Kontak belum diisi') ?></span>
+            <div class="small text-muted mt-1">Siapkan bukti kepemilikan, misalnya ciri khusus atau foto lama.</div>
+          </div>
+        </div>
+      <?php endif; ?>
     </div>
-
+  </div>
 </div>
-
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require 'includes/footer.php'; ?>

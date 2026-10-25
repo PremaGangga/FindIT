@@ -1,37 +1,27 @@
 <?php
+/**
+ * Pengecekan login & role.
+ * Pemakaian di halaman admin:
+ *   require '../includes/auth.php';
+ *   wajib_role('admin');
+ */
+require_once __DIR__ . '/../config/koneksi.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+function user() { return $_SESSION['user'] ?? null; }
+
+function dashboard_path($role) {
+    if ($role === 'superadmin') return 'superadmin/dashboard.php';
+    if ($role === 'admin')      return 'admin/dashboard.php';
+    return 'user/dashboard.php';
 }
 
-function is_logged_in(): bool
-{
-    return isset($_SESSION['user_id'], $_SESSION['role']);
-}
-
-function require_login(): void
-{
-    if (!is_logged_in()) {
-        header('Location: ../login.php');
-        exit;
+function wajib_role($role) {
+    $u = user();
+    if (!$u) {
+        flash_set('warning', 'Silakan login dulu.');
+        redirect('login.php');
     }
-}
-
-function require_role(string $role): void
-{
-    require_login();
-
-    if ($_SESSION['role'] !== $role) {
-        http_response_code(403);
-        exit('403 - Anda tidak memiliki izin mengakses halaman ini.');
+    if ($u['role'] !== $role) {
+        redirect(dashboard_path($u['role']));   // salah role -> ke dashboard miliknya
     }
-}
-
-function e($value): string
-{
-    return htmlspecialchars(
-        (string) ($value ?? ''),
-        ENT_QUOTES,
-        'UTF-8'
-    );
 }

@@ -1,164 +1,35 @@
 <?php
-require_once __DIR__ . '/../config/koneksi.php';
-require_once __DIR__ . '/../includes/auth.php';
+require '../includes/auth.php';
+wajib_role('superadmin');
+require '_validasi_admin.php';
 
-require_role('superadmin');
+$id = (int)($_GET['id'] ?? 0);
+$lama = db_one("SELECT * FROM users WHERE id = ? AND role = 'admin'", 'i', [$id]);
+if (!$lama) { flash_set('danger', 'Akun admin tidak ditemukan.'); redirect('superadmin/dashboard.php'); }
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-
-$stmt = $pdo->prepare(
-    'SELECT id, nama, username, role FROM users WHERE id = ?'
-);
-
-$stmt->execute([$id ?: 0]);
-$user = $stmt->fetch();
-
-if (!$user) {
-    http_response_code(404);
-    exit('Akun tidak ditemukan.');
-}
-
-$error = '';
-
+$data = ['nama' => $lama['nama'], 'username' => $lama['username'], 'password' => ''];
+$errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama = trim($_POST['nama'] ?? '');
-    $username = trim($_POST['username'] ?? '');
-    $role = $_POST['role'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    if (
-        $nama === '' ||
-        !preg_match('/^[a-zA-Z0-9_.-]{3,50}$/', $username) ||
-        !in_array($role, ['admin', 'superadmin'], true) ||
-        ($password !== '' && strlen($password) < 8)
-    ) {
-        $error = 'Data tidak valid. Password baru minimal 8 karakter.';
-    } elseif (
-        (int) $user['id'] === (int) $_SESSION['user_id'] &&
-        $role !== 'superadmin'
-    ) {
-        $error = 'Anda tidak dapat mengubah role akun sendiri menjadi admin.';
-    } else {
-        try {
-            if ($password !== '') {
-                $stmt = $pdo->prepare(
-                    'UPDATE users
-                     SET nama = ?, username = ?, role = ?, password = ?
-                     WHERE id = ?'
-                );
-
-                $stmt->execute([
-                    $nama,
-                    $username,
-                    $role,
-                    password_hash($password, PASSWORD_DEFAULT),
-                    $id
-                ]);
-            } else {
-                $stmt = $pdo->prepare(
-                    'UPDATE users
-                     SET nama = ?, username = ?, role = ?
-                     WHERE id = ?'
-                );
-
-                $stmt->execute([
-                    $nama,
-                    $username,
-                    $role,
-                    $id
-                ]);
-            }
-
-            if ((int) $id === (int) $_SESSION['user_id']) {
-                $_SESSION['nama'] = $nama;
-                $_SESSION['username'] = $username;
-            }
-
-            header('Location: dashboard.php?user_updated=1');
-            exit;
-
-        } catch (PDOException $e) {
-            $error = $e->getCode() === '23000'
-                ? 'Username sudah digunakan.'
-                : 'Gagal memperbarui akun.';
+    csrf_check();
+    [$data, $errors] = ambil_input_admin($id, 'edit');
+    if (!$errors) {
+        if ($data['password'] !== '') {
+            db_exec('UPDATE users SET nama=?, username=?, password=? WHERE id=?', 'sssi',
+                [$data['nama'], $data['username'], password_hash($data['password'], PASSWORD_DEFAULT), $id]);
+        } else {
+            db_exec('UPDATE users SET nama=?, username=? WHERE id=?', 'ssi', [$data['nama'], $data['username'], $id]);
         }
+        flash_set('success', 'Data admin berhasil diperbarui.');
+        redirect('superadmin/dashboard.php');
     }
-
-    $user['nama'] = $nama;
-    $user['username'] = $username;
-    $user['role'] = $role;
 }
-
-$pageTitle = 'Edit Akun';
-$assetPrefix = '../';
-$homePrefix = '../';
-
-require __DIR__ . '/../includes/header.php';
+$mode = 'edit';
+$judul = 'Ubah admin';
+require '../includes/header.php';
 ?>
-
-<div class="section-head">
-    <h1>Edit Akun</h1>
-
-    <a href="dashboard.php" class="btn btn-secondary">
-        ← Dashboard
-    </a>
+<div class="container page-pad">
+  <a class="back-link" href="<?= url('superadmin/dashboard.php') ?>"><i class="bi bi-arrow-left me-1"></i>Kembali ke dashboard</a>
+  <h1 class="page-title mt-2 mb-4">Ubah admin</h1>
+  <div class="row"><div class="col-lg-6"><?php require '_form_admin.php'; ?></div></div>
 </div>
-
-<?php if ($error): ?>
-    <div class="alert alert-error"><?= e($error) ?></div>
-<?php endif; ?>
-
-<form class="panel" method="POST">
-
-    <div class="form-grid">
-
-        <div class="field">
-            <label>Nama Lengkap</label>
-            <input class="input" name="nama" required
-                   value="<?= e($user['nama']) ?>">
-        </div>
-
-        <div class="field">
-            <label>Username</label>
-            <input class="input" name="username" required
-                   value="<?= e($user['username']) ?>">
-        </div>
-
-        <div class="field">
-            <label>Password Baru</label>
-            <input class="input" type="password" name="password"
-                   minlength="8"
-                   placeholder="Kosongkan jika tidak diubah">
-        </div>
-
-        <div class="field">
-            <label>Role</label>
-
-            <select class="select" name="role">
-                <option value="admin"
-                    <?= $user['role'] === 'admin' ? 'selected' : '' ?>>
-                    Admin
-                </option>
-
-                <option value="superadmin"
-                    <?= $user['role'] === 'superadmin' ? 'selected' : '' ?>>
-                    Superadmin
-                </option>
-            </select>
-        </div>
-
-    </div>
-
-    <div class="form-actions">
-        <button class="btn" type="submit">
-            Simpan Perubahan
-        </button>
-
-        <a href="dashboard.php" class="btn btn-secondary">
-            Batal
-        </a>
-    </div>
-
-</form>
-
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require '../includes/footer.php'; ?>

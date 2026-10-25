@@ -1,158 +1,58 @@
 <?php
-require_once __DIR__ . '/../config/koneksi.php';
-require_once __DIR__ . '/../includes/auth.php';
+require '../includes/auth.php';
+wajib_role('superadmin');
 
-require_role('superadmin');
+$admins = db_all(
+    "SELECT u.*, (SELECT COUNT(*) FROM barang b WHERE b.created_by = u.id) AS jumlah_laporan
+     FROM users u WHERE u.role = 'admin' ORDER BY u.created_at DESC, u.id DESC"
+);
+$totalBarang = (int)db_one('SELECT COUNT(*) AS n FROM barang')['n'];
+$totalUser = (int)db_one("SELECT COUNT(*) AS n FROM users WHERE role='user'")['n'];
 
-$total = (int) $pdo->query(
-    'SELECT COUNT(*) FROM users'
-)->fetchColumn();
-
-$admins = (int) $pdo->query(
-    "SELECT COUNT(*) FROM users WHERE role = 'admin'"
-)->fetchColumn();
-
-$items = (int) $pdo->query(
-    'SELECT COUNT(*) FROM items'
-)->fetchColumn();
-
-$users = $pdo->query(
-    'SELECT id, nama, username, role, created_at
-     FROM users
-     ORDER BY created_at DESC'
-)->fetchAll();
-
-$pageTitle = 'Dashboard Superadmin';
-$assetPrefix = '../';
-$homePrefix = '../';
-
-require __DIR__ . '/../includes/header.php';
+$judul = 'Dashboard superadmin';
+require '../includes/header.php';
 ?>
-
-<div class="dashboard-head">
+<div class="container page-pad">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div>
-        <span class="eyebrow">Kontrol Sistem</span>
-        <h1>Dashboard Superadmin</h1>
-
-        <p class="muted">
-            Selamat datang, <?= e($_SESSION['nama']) ?>.
-        </p>
+      <h1 class="page-title mb-1">Kelola admin</h1>
+      <p class="text-muted mb-0">Halo, <?= e(user()['nama']) ?>. Atur siapa saja yang boleh mengelola laporan barang.</p>
     </div>
+    <a class="btn btn-primary-ink" href="<?= url('superadmin/admin_tambah.php') ?>"><i class="bi bi-person-plus me-1"></i>Tambah admin</a>
+  </div>
 
-    <a href="admin_tambah.php" class="btn">
-        + Tambah Akun
-    </a>
-</div>
+  <div class="row g-3 mb-4">
+    <div class="col-4"><div class="stat stat-ink"><span><?= count($admins) ?></span>Akun admin</div></div>
+    <div class="col-4"><div class="stat stat-ink"><span><?= $totalUser ?></span>Akun pengguna</div></div>
+    <div class="col-4"><div class="stat stat-ink"><span><?= $totalBarang ?></span>Total laporan</div></div>
+  </div>
 
-<?php if (isset($_GET['user_added'])): ?>
-    <div class="alert">Akun berhasil ditambahkan.</div>
-<?php elseif (isset($_GET['user_updated'])): ?>
-    <div class="alert">Akun berhasil diperbarui.</div>
-<?php elseif (isset($_GET['user_deleted'])): ?>
-    <div class="alert">Akun berhasil dihapus.</div>
-<?php elseif (isset($_GET['error'])): ?>
-    <div class="alert alert-error">
-        Akun tidak dapat dihapus.
-    </div>
-<?php endif; ?>
-
-<div class="stats">
-
-    <div class="stat">
-        <span>Total Akun</span>
-        <strong><?= $total ?></strong>
-    </div>
-
-    <div class="stat">
-        <span>Jumlah Admin</span>
-        <strong><?= $admins ?></strong>
-    </div>
-
-    <div class="stat">
-        <span>Total Laporan</span>
-        <strong><?= $items ?></strong>
-    </div>
-
-</div>
-
-<div class="section-head">
-    <h2>Manajemen Akun</h2>
-</div>
-
-<div class="table-wrap">
-    <table class="table">
-
-        <thead>
-            <tr>
-                <th>Nama</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Tanggal Dibuat</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Nama</th><th>Username</th><th>Laporan dibuat</th><th>Dibuat pada</th><th class="text-end">Aksi</th></tr></thead>
         <tbody>
-
-            <?php foreach ($users as $user): ?>
-                <tr>
-
-                    <td><?= e($user['nama']) ?></td>
-                    <td><?= e($user['username']) ?></td>
-                    <td><?= e($user['role']) ?></td>
-
-                    <td>
-                        <?= e(date(
-                            'd-m-Y',
-                            strtotime($user['created_at'])
-                        )) ?>
-                    </td>
-
-                    <td>
-                        <div class="table-actions">
-
-                            <a
-                                href="admin_edit.php?id=<?= (int) $user['id'] ?>"
-                                class="btn btn-secondary"
-                            >
-                                Edit
-                            </a>
-
-                            <?php if (
-                                (int) $user['id'] !==
-                                (int) $_SESSION['user_id']
-                            ): ?>
-
-                                <form
-                                    method="POST"
-                                    action="admin_hapus.php"
-                                    class="inline-form"
-                                    data-confirm="Yakin ingin menghapus akun ini?"
-                                >
-                                    <input
-                                        type="hidden"
-                                        name="id"
-                                        value="<?= (int) $user['id'] ?>"
-                                    >
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-danger"
-                                    >
-                                        Hapus
-                                    </button>
-                                </form>
-
-                            <?php endif; ?>
-
-                        </div>
-                    </td>
-
-                </tr>
-            <?php endforeach; ?>
-
+        <?php if (!$admins): ?>
+          <tr><td colspan="5" class="text-center text-muted py-5">Belum ada akun admin. Klik "Tambah admin" untuk membuat yang pertama.</td></tr>
+        <?php endif; ?>
+        <?php foreach ($admins as $a): ?>
+          <tr>
+            <td class="fw-semibold"><?= e($a['nama']) ?></td>
+            <td><code><?= e($a['username']) ?></code></td>
+            <td><?= (int)$a['jumlah_laporan'] ?></td>
+            <td class="text-nowrap"><?= tgl($a['created_at']) ?></td>
+            <td class="text-end text-nowrap">
+              <a class="btn btn-sm btn-light border" href="<?= url('superadmin/admin_edit.php?id=' . $a['id']) ?>" title="Ubah" aria-label="Ubah"><i class="bi bi-pencil"></i></a>
+              <form method="post" action="<?= url('superadmin/admin_hapus.php') ?>" class="d-inline" data-confirm="Hapus akun admin &quot;<?= e($a['username']) ?>&quot;? Laporan yang pernah dibuatnya tetap tersimpan.">
+                <?= csrf_field() ?><input type="hidden" name="id" value="<?= $a['id'] ?>">
+                <button class="btn btn-sm btn-outline-danger" title="Hapus" aria-label="Hapus"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        <?php endforeach; ?>
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
 </div>
-
-<?php require __DIR__ . '/../includes/footer.php'; ?>
+<?php require '../includes/footer.php'; ?>

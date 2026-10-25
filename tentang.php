@@ -1,67 +1,52 @@
 <?php
-$pageTitle = 'Tentang FindIT';
-require __DIR__ . '/includes/header.php';
+$judul = 'Cara kerja';
+require 'includes/header.php';
 ?>
-
-<section class="hero">
-
-    <div>
-        <span class="eyebrow">Tentang Kami</span>
-
-        <h1>
-            Membantu barang kembali
-            kepada pemiliknya.
-        </h1>
-
-        <p>
-            FindIT adalah sistem informasi barang hilang dan
-            temuan untuk membantu civitas kampus menemukan
-            informasi barang secara lebih mudah dan terstruktur.
-        </p>
-
-        <div class="actions">
-            <a href="index.php" class="btn">
-                Jelajahi Barang
-            </a>
-        </div>
+<div class="container page-pad">
+  <div class="row">
+    <div class="col-lg-8">
+      <h1 class="page-title">Cara kerja FindIT</h1>
+      <p class="lead-text">
+        FindIT mengumpulkan laporan barang hilang dan barang temuan di satu tempat.
+        Siapa pun yang terdaftar bisa melapor, dan admin memastikan setiap laporan akurat sebelum tayang.
+      </p>
     </div>
+  </div>
 
-    <div class="hero-art">
-        <div class="hero-card">
-            <div class="big-icon">🤝</div>
-            <h3>Kolaborasi Komunitas</h3>
-            <p>
-                Informasi yang jelas membantu proses pengembalian
-                barang menjadi lebih mudah.
-            </p>
-        </div>
+  <div class="row g-4 mt-2">
+    <div class="col-md-6">
+      <div class="info-block">
+        <h2>Kalau barangmu hilang</h2>
+        <ol class="steps">
+          <li>Cari dulu di <a href="<?= url('barang.php') ?>">daftar barang</a> berdasarkan nama, kategori, atau lokasi.</li>
+          <li>Kalau ada yang mirip, buka detailnya dan hubungi penemu lewat kontak yang tertera. Siapkan bukti kepemilikan.</li>
+          <li>Belum ada? <a href="<?= url('daftar.php') ?>">Daftar</a>, lalu buat laporan dengan status <span class="status status-inline status-hilang">Hilang</span> agar orang lain bisa membantu.</li>
+        </ol>
+      </div>
     </div>
-
-</section>
-
-<div class="grid">
-
-    <div class="panel">
-        <h3>🔎 Mudah Dicari</h3>
-        <p class="muted">
-            Cari barang berdasarkan nama, kategori, dan lokasi.
-        </p>
+    <div class="col-md-6">
+      <div class="info-block">
+        <h2>Kalau kamu menemukan barang</h2>
+        <ol class="steps">
+          <li>Masuk, lalu buat laporan dengan status <span class="status status-inline status-ditemukan">Ditemukan</span>. Sertakan foto dan lokasi.</li>
+          <li>Admin memeriksa laporanmu. Pantau statusnya di dashboard (menunggu, tayang, atau ditolak beserta alasannya).</li>
+          <li>Setelah tayang, pemilik menghubungimu. Kalau barang sudah diambil, admin mengubah status menjadi <span class="status status-inline status-dikembalikan">Dikembalikan</span>.</li>
+        </ol>
+      </div>
     </div>
+  </div>
 
-    <div class="panel">
-        <h3>📋 Informasi Terstruktur</h3>
-        <p class="muted">
-            Setiap laporan memiliki deskripsi, tanggal, dan kontak.
-        </p>
+  <div class="info-block mt-4">
+    <h2>Arti status laporan</h2>
+    <div class="row g-3">
+      <div class="col-md-4"><span class="status status-inline status-hilang">Hilang</span><p class="mt-2 mb-0">Pemilik sedang mencari barang ini.</p></div>
+      <div class="col-md-4"><span class="status status-inline status-ditemukan">Ditemukan</span><p class="mt-2 mb-0">Barang sudah ada di tangan admin, menunggu pemiliknya.</p></div>
+      <div class="col-md-4"><span class="status status-inline status-dikembalikan">Dikembalikan</span><p class="mt-2 mb-0">Barang sudah kembali ke pemiliknya.</p></div>
     </div>
+  </div>
 
-    <div class="panel">
-        <h3>🔐 Dikelola Admin</h3>
-        <p class="muted">
-            Laporan dikelola melalui dashboard dengan hak akses.
-        </p>
-    </div>
-
+  <div class="text-center mt-5">
+    <a class="btn btn-pill btn-pill-fill btn-pill-lg" href="<?= url('barang.php') ?>">Lihat daftar barang</a>
+  </div>
 </div>
-
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require 'includes/footer.php'; ?>

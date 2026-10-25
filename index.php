@@ -1,240 +1,111 @@
 <?php
-require_once __DIR__ . '/config/koneksi.php';
-require_once __DIR__ . '/includes/auth.php';
+$judul = null;
+require 'includes/header.php';
+require 'includes/kartu.php';
 
-$pageTitle = 'Beranda';
-
-$q = trim($_GET['q'] ?? '');
-$jenis = $_GET['jenis'] ?? '';
-$kategori = (int) ($_GET['kategori'] ?? 0);
-
-$sql = "
-    SELECT items.*, categories.nama AS nama_kategori
-    FROM items
-    LEFT JOIN categories
-        ON items.kategori_id = categories.id
-    WHERE 1=1
-";
-
-$params = [];
-
-if ($q !== '') {
-    $sql .= "
-        AND (
-            items.judul LIKE ?
-            OR items.deskripsi LIKE ?
-            OR items.lokasi LIKE ?
-        )
-    ";
-
-    $keyword = "%$q%";
-    $params[] = $keyword;
-    $params[] = $keyword;
-    $params[] = $keyword;
-}
-
-if (in_array($jenis, ['hilang', 'ditemukan'], true)) {
-    $sql .= " AND items.jenis = ?";
-    $params[] = $jenis;
-}
-
-if ($kategori > 0) {
-    $sql .= " AND items.kategori_id = ?";
-    $params[] = $kategori;
-}
-
-$sql .= " ORDER BY items.created_at DESC LIMIT 100";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$items = $stmt->fetchAll();
-
-$categories = $pdo->query(
-    "SELECT * FROM categories ORDER BY nama"
-)->fetchAll();
-
-require __DIR__ . '/includes/header.php';
+// Hanya laporan yang sudah disetujui admin yang tampil ke publik
+$terbaru = db_all(
+    "SELECT b.*, k.nama AS kategori FROM barang b LEFT JOIN kategori k ON k.id = b.kategori_id
+     WHERE b.verifikasi = 'disetujui' ORDER BY b.created_at DESC, b.id DESC LIMIT 4"
+);
+$s = ['hilang' => 0, 'ditemukan' => 0, 'dikembalikan' => 0];
+foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi = 'disetujui' GROUP BY status") as $r) $s[$r['status']] = (int)$r['n'];
 ?>
 
 <section class="hero">
-    <div>
-        <span class="eyebrow">
-            Platform Barang Hilang dan Temuan
-        </span>
-
-        <h1>
-            Barang hilang?<br>
-            <span style="color:var(--blue)">
-                Cari di FindIT.
-            </span>
-        </h1>
-
-        <p>
-            Temukan informasi barang hilang dan barang temuan
-            di lingkungan kampus melalui satu platform yang mudah
-            digunakan.
-        </p>
-
-        <div class="actions">
-            <a href="#daftar" class="btn">Cari Barang →</a>
-            <a href="tentang.php" class="btn btn-secondary">
-                Tentang FindIT
-            </a>
+  <div class="container">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-5">
+        <span class="eyebrow">Platform Barang Hilang dan Temuan</span>
+        <h1 class="hero-title">Barang hilang?<br>Cari di <span>FindIT.</span></h1>
+        <p class="hero-lead">Temukan informasi barang hilang dan barang temuan di lingkungan kampus melalui satu platform yang mudah digunakan.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a class="btn btn-pill btn-pill-fill btn-pill-lg" href="<?= url('barang.php') ?>"><i class="bi bi-search me-2"></i>Cari Barang <i class="bi bi-arrow-right ms-2"></i></a>
+          <a class="btn btn-pill btn-pill-outline btn-pill-lg" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Lapor Barang</a>
         </div>
-    </div>
+      </div>
 
-    <div class="hero-art">
-        <div class="hero-card">
-            <div class="big-icon">🔎 🎒</div>
-            <h3>Temukan. Hubungkan. Kembalikan.</h3>
-            <p>
-                Informasi yang tepat membantu barang kembali
-                kepada pemiliknya.
-            </p>
+      <div class="col-lg-4 col-md-6">
+        <div class="hero-art" aria-hidden="true">
+          <div class="lens"><i class="bi bi-backpack2-fill"></i></div>
+          <span class="float-ico f1"><i class="bi bi-wallet2"></i></span>
+          <span class="float-ico f2"><i class="bi bi-phone"></i></span>
+          <span class="float-ico f3"><i class="bi bi-headphones"></i></span>
         </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <p class="handwrite">Temukan.<br>Hubungkan.<br>Kembalikan.</p>
+        <p class="hero-side">Informasi yang tepat membantu barang kembali kepada pemiliknya.</p>
+      </div>
     </div>
+  </div>
 </section>
 
-<section id="daftar">
+<div class="container">
+  <!-- Angka ringkas -->
+  <div class="stat-band">
+    <div><span class="num num-hilang"><?= $s['hilang'] ?></span> barang sedang dicari</div>
+    <div><span class="num num-ditemukan"><?= $s['ditemukan'] ?></span> barang temuan menunggu pemilik</div>
+    <div><span class="num num-kembali"><?= $s['dikembalikan'] ?></span> sudah kembali ke pemilik</div>
+  </div>
+
+  <!-- Cara kerja -->
+  <section class="home-section">
     <div class="section-head">
-        <div>
-            <span class="eyebrow">Papan informasi</span>
-            <h2>Daftar Barang</h2>
-        </div>
-
-        <span class="muted small">
-            <?= count($items) ?> laporan ditemukan
-        </span>
+      <h2>Cara kerja FindIT</h2>
+      <p>Tanpa perlu datang ke kantor admin. Cukup lapor lewat website.</p>
     </div>
-
-    <form method="GET" class="filters">
-        <input
-            class="input"
-            type="search"
-            name="q"
-            placeholder="Cari nama barang atau lokasi..."
-            value="<?= e($q) ?>"
-        >
-
-        <select class="select" name="jenis">
-            <option value="">Semua laporan</option>
-
-            <option value="hilang"
-                <?= $jenis === 'hilang' ? 'selected' : '' ?>>
-                Barang hilang
-            </option>
-
-            <option value="ditemukan"
-                <?= $jenis === 'ditemukan' ? 'selected' : '' ?>>
-                Barang ditemukan
-            </option>
-        </select>
-
-        <select class="select" name="kategori">
-            <option value="0">Semua kategori</option>
-
-            <?php foreach ($categories as $c): ?>
-                <option
-                    value="<?= (int) $c['id'] ?>"
-                    <?= $kategori === (int) $c['id']
-                        ? 'selected' : '' ?>
-                >
-                    <?= e($c['nama']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-
-        <button class="btn" type="submit">Cari</button>
-
-        <a href="index.php" class="btn btn-secondary">Reset</a>
-    </form>
-
-    <?php if (empty($items)): ?>
-
-        <div class="empty">
-            <h3>Belum ada laporan yang cocok</h3>
-            <p>Coba kata kunci atau kategori yang berbeda.</p>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="how-step">
+          <span class="how-ico"><i class="bi bi-pencil-square"></i></span>
+          <h3>1. Buat laporan</h3>
+          <p>Daftar atau masuk, lalu isi nama barang, lokasi, tanggal, ciri-ciri, dan foto. Bisa untuk barang hilang maupun barang yang kamu temukan.</p>
         </div>
+      </div>
+      <div class="col-md-4">
+        <div class="how-step">
+          <span class="how-ico"><i class="bi bi-patch-check"></i></span>
+          <h3>2. Admin memverifikasi</h3>
+          <p>Admin memeriksa laporanmu supaya informasi akurat dan bebas spam. Status laporan bisa kamu pantau di dashboard.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="how-step">
+          <span class="how-ico"><i class="bi bi-chat-dots"></i></span>
+          <h3>3. Hubungi dan kembalikan</h3>
+          <p>Setelah tayang, pemilik dan penemu saling menghubungi lewat kontak di halaman detail. Barang kembali, status diperbarui.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
+  <!-- Laporan terbaru -->
+  <section class="home-section">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+      <div class="section-head mb-0"><h2>Laporan terbaru</h2><p>Barang yang baru dilaporkan di kampus.</p></div>
+      <a class="btn btn-pill btn-pill-outline" href="<?= url('barang.php') ?>">Lihat semua barang <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <?php if (!$terbaru): ?>
+      <div class="empty-state"><i class="bi bi-inbox"></i><h3>Belum ada laporan</h3><p>Jadilah yang pertama melaporkan barang.</p></div>
     <?php else: ?>
-
-        <div class="grid">
-
-            <?php foreach ($items as $item): ?>
-
-                <article class="card">
-
-                    <div class="item-image">
-                        <?php
-                        $fotoPath = __DIR__ . '/assets/uploads/' .
-                            ($item['foto'] ?? '');
-
-                        if (
-                            !empty($item['foto']) &&
-                            is_file($fotoPath)
-                        ):
-                        ?>
-                            <img
-                                src="assets/uploads/<?= e($item['foto']) ?>"
-                                alt="<?= e($item['judul']) ?>"
-                            >
-                        <?php else: ?>
-                            🔎
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="card-body">
-
-                        <span class="tag">
-                            <?= e($item['nama_kategori'] ?? 'Lainnya') ?>
-                        </span>
-
-                        <span class="status <?= $item['status'] === 'hilang'
-                            ? 'status-hilang'
-                            : ($item['status'] === 'dikembalikan'
-                                ? 'status-dikembalikan' : '') ?>">
-                            <?= e(ucfirst($item['status'])) ?>
-                        </span>
-
-                        <h3><?= e($item['judul']) ?></h3>
-
-                        <p>
-                            📍 <?= e($item['lokasi']) ?>
-                        </p>
-
-                        <p>
-                            📅 <?= e(date(
-                                'd-m-Y',
-                                strtotime($item['tanggal_kejadian'])
-                            )) ?>
-                        </p>
-
-                        <p>
-                            <?= e(mb_strimwidth(
-                                $item['deskripsi'],
-                                0,
-                                100,
-                                '...'
-                            )) ?>
-                        </p>
-
-                        <div class="actions">
-                            <a
-                                href="detail.php?id=<?= (int) $item['id'] ?>"
-                                class="btn btn-secondary"
-                            >
-                                Lihat Detail
-                            </a>
-                        </div>
-
-                    </div>
-                </article>
-
-            <?php endforeach; ?>
-
-        </div>
-
+      <div class="row g-4">
+        <?php foreach ($terbaru as $b): ?>
+          <div class="col-sm-6 col-lg-3"><?php kartu_barang($b); ?></div>
+        <?php endforeach; ?>
+      </div>
     <?php endif; ?>
-</section>
+  </section>
 
-<?php require __DIR__ . '/includes/footer.php'; ?>
+  <div class="cta-band">
+    <i class="bi bi-shield-check"></i>
+    <div class="flex-grow-1">
+      <strong>Punya barang hilang atau menemukan barang?</strong>
+      <span>Bantu kami menghubungkan barang dengan pemiliknya. Laporanmu diperiksa admin sebelum tayang.</span>
+    </div>
+    <a class="btn btn-pill btn-pill-fill" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Buat Laporan</a>
+  </div>
+</div>
+
+<?php require 'includes/footer.php'; ?>

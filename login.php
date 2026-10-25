@@ -1,118 +1,57 @@
 <?php
-require_once __DIR__ . '/config/koneksi.php';
-require_once __DIR__ . '/includes/auth.php';
+require_once 'includes/auth.php';
 
-if (is_logged_in()) {
-    if ($_SESSION['role'] === 'superadmin') {
-        header('Location: superadmin/dashboard.php');
-    } else {
-        header('Location: admin/dashboard.php');
-    }
-    exit;
-}
+if (user()) redirect(dashboard_path(user()['role']));
 
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    csrf_check();
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $pdo->prepare(
-        'SELECT id, nama, username, password, role
-         FROM users
-         WHERE username = ?
-         LIMIT 1'
-    );
-
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
-
-    if ($user && password_verify($password, $user['password'])) {
+    $row = db_one('SELECT * FROM users WHERE username = ?', 's', [$username]);
+    if ($row && password_verify($password, $row['password'])) {
         session_regenerate_id(true);
-
-        $_SESSION['user_id'] = (int) $user['id'];
-        $_SESSION['nama'] = $user['nama'];
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
-
-        if ($user['role'] === 'superadmin') {
-            header('Location: superadmin/dashboard.php');
-        } else {
-            header('Location: admin/dashboard.php');
-        }
-
-        exit;
+        $_SESSION['user'] = [
+            'id' => (int)$row['id'], 'nama' => $row['nama'],
+            'username' => $row['username'], 'role' => $row['role'],
+        ];
+        flash_set('success', 'Selamat datang, ' . $row['nama'] . '.');
+        redirect(dashboard_path($row['role']));
     }
-
-    $error = 'Username atau password salah.';
+    $error = 'Username atau password salah. Periksa lagi huruf besar dan kecilnya.';
 }
 
-$pageTitle = 'Login Admin';
-require __DIR__ . '/includes/header.php';
+$judul = 'Masuk';
+require 'includes/header.php';
 ?>
+<div class="container page-pad">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5 col-xl-4">
+      <div class="form-card">
+        <h1 class="h3 mb-1">Masuk ke FindIT</h1>
+        <p class="text-muted mb-4">Untuk membuat laporan atau mengelola data. Melihat daftar barang tidak perlu login.</p>
 
-<div class="auth-wrap">
-    <div class="auth-card">
+        <?php if ($error): ?><div class="alert alert-danger"><?= e($error) ?></div><?php endif; ?>
 
-        <span class="eyebrow">Area Administrator</span>
-
-        <h1 style="margin-top:15px">Selamat Datang</h1>
-
-        <p class="muted">
-            Login untuk mengelola laporan FindIT.
-        </p>
-
-        <?php if ($error): ?>
-            <div class="alert alert-error">
-                <?= e($error) ?>
+        <form method="post" autocomplete="off">
+          <?= csrf_field() ?>
+          <div class="mb-3">
+            <label class="form-label" for="username">Username</label>
+            <input class="form-control" id="username" name="username" value="<?= e($_POST['username'] ?? '') ?>" required autofocus>
+          </div>
+          <div class="mb-4">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="password" name="password" required>
+              <button class="btn btn-light border" type="button" data-toggle-password="#password" aria-label="Tampilkan password"><i class="bi bi-eye"></i></button>
             </div>
-        <?php endif; ?>
-
-        <form method="POST">
-
-            <div class="field">
-                <label for="username">Username</label>
-
-                <input
-                    class="input"
-                    type="text"
-                    id="username"
-                    name="username"
-                    required
-                    autocomplete="username"
-                >
-            </div>
-
-            <div class="field">
-                <label for="password">Password</label>
-
-                <input
-                    class="input"
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    autocomplete="current-password"
-                >
-            </div>
-
-            <div class="form-actions">
-                <button class="btn" type="submit">
-                    Login
-                </button>
-
-                <a href="index.php" class="btn btn-secondary">
-                    Kembali
-                </a>
-            </div>
-
+          </div>
+          <button class="btn btn-primary-ink w-100" type="submit">Masuk</button>
         </form>
-
-        <p class="auth-note">
-            Halaman ini hanya untuk akun administrator.
-        </p>
-
+        <p class="text-center text-muted small mt-4 mb-0">Belum punya akun? <a href="<?= url('daftar.php') ?>" class="fw-semibold">Daftar sekarang</a></p>
+      </div>
     </div>
+  </div>
 </div>
-
-<?php require __DIR__ . '/includes/footer.php'; ?>
+<?php require 'includes/footer.php'; ?>

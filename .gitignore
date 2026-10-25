@@ -1,15 +1,11 @@
-# File editor
-.vscode/
-.DS_Store
-Thumbs.db
+# Kredensial hosting (jangan di-commit!)
+config/hosting.php
 
-# File konfigurasi rahasia
-.env
-
-# Foto upload lokal
+# Foto upload saat testing
 assets/uploads/*
 !assets/uploads/.gitkeep
 
-# Jangan unggah file cadangan
-*.bak
-*.log
+# File sampah editor / OS
+.vscode/
+.DS_Store
+Thumbs.db
