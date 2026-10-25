@@ -22,13 +22,6 @@ Kalau ditolak, user melihat alasannya dan bisa memperbaiki lalu kirim ulang.
 
 Pengaturan database default (`root`, tanpa password) ada di `config/koneksi.php`.
 
-## Akun contoh
-
-| Role | Username | Password |
-|---|---|---|
-| Superadmin | `superadmin` | `admin123` |
-| Admin | `admin` | `admin123` |
-| User | `mahasiswa` | `user123` |
 
 **Ganti password sebelum website dihosting.** Superadmin bisa mengganti password admin lewat menu Ubah.
 Pengguna baru bisa mendaftar sendiri lewat halaman Daftar.
