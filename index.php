@@ -6,7 +6,7 @@ require 'includes/kartu.php';
 // Hanya laporan yang sudah disetujui admin yang tampil ke publik
 $terbaru = db_all(
     "SELECT b.*, k.nama AS kategori FROM barang b LEFT JOIN kategori k ON k.id = b.kategori_id
-     WHERE b.verifikasi = 'disetujui' ORDER BY b.created_at DESC, b.id DESC LIMIT 4"
+     WHERE b.verifikasi = 'disetujui' AND b.status IN ('hilang','ditemukan') ORDER BY b.created_at DESC, b.id DESC LIMIT 4"
 );
 $s = ['hilang' => 0, 'ditemukan' => 0, 'dikembalikan' => 0];
 foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi = 'disetujui' GROUP BY status") as $r) $s[$r['status']] = (int)$r['n'];

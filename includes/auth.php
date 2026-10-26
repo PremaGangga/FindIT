@@ -21,6 +21,13 @@ function wajib_role($role) {
         flash_set('warning', 'Silakan login dulu.');
         redirect('login.php');
     }
+        // Akun sudah dihapus admin/superadmin -> sesi tidak berlaku lagi
+    if (!db_one('SELECT id FROM users WHERE id = ?', 'i', [$u['id']])) {
+        $_SESSION = [];
+        session_regenerate_id(true);
+        flash_set('warning', 'Akunmu sudah tidak aktif. Silakan hubungi admin.');
+        redirect('login.php');
+    }
     if ($u['role'] !== $role) {
         redirect(dashboard_path($u['role']));   // salah role -> ke dashboard miliknya
     }

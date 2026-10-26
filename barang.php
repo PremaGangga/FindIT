@@ -7,9 +7,9 @@ require 'includes/kartu.php';
 $q      = trim($_GET['q'] ?? '');
 $kat    = (int)($_GET['kategori'] ?? 0);
 $status = $_GET['status'] ?? '';
-if (!in_array($status, ['hilang', 'ditemukan', 'dikembalikan'], true)) $status = '';
+if (!in_array($status, ['hilang', 'ditemukan'], true)) $status = '';
 
-$where = ["b.verifikasi = 'disetujui'"]; $types = ''; $params = [];
+$where = ["b.verifikasi = 'disetujui'", "b.status IN ('hilang','ditemukan')"]; $types = ''; $params = [];
 if ($q !== '')      { $where[] = '(b.judul LIKE ? OR b.deskripsi LIKE ? OR b.lokasi LIKE ?)'; $types .= 'sss'; array_push($params, "%$q%", "%$q%", "%$q%"); }
 if ($kat > 0)       { $where[] = 'b.kategori_id = ?'; $types .= 'i'; $params[] = $kat; }
 if ($status !== '') { $where[] = 'b.status = ?';      $types .= 's'; $params[] = $status; }
@@ -53,7 +53,7 @@ $adaFilter = ($q !== '' || $kat || $status !== '');
         <i class="bi bi-calendar-check"></i>
         <select class="form-select" name="status" aria-label="Status laporan">
           <option value="">Semua laporan</option>
-          <?php foreach (['hilang', 'ditemukan', 'dikembalikan'] as $st): ?>
+          <?php foreach (['hilang', 'ditemukan'] as $st): ?>
             <option value="<?= $st ?>" <?= $status === $st ? 'selected' : '' ?>><?= status_label($st) ?></option>
           <?php endforeach; ?>
         </select>

@@ -32,3 +32,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 });
+
+// Modal "Hapus pengguna": isi id, nama, dan jumlah laporan pengguna yang dipilih
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-hapus-user-id]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const n = parseInt(btn.getAttribute('data-hapus-user-total') || '0', 10);
+      const cek = document.getElementById('hapus-laporan');
+      document.getElementById('hapus-user-id').value = btn.getAttribute('data-hapus-user-id');
+      document.getElementById('hapus-user-nama').textContent = btn.getAttribute('data-hapus-user-nama');
+      document.getElementById('hapus-laporan-n').textContent = n;
+      cek.checked = false;
+      cek.disabled = (n === 0);
+    });
+  });
+});

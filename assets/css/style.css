@@ -231,3 +231,15 @@ a { color: var(--blue); }
   .stat-band > div { display: flex; align-items: baseline; gap: .7rem; }
   .stat-band .num { display: inline; font-size: 1.6rem; }
 }
+/* Banner laporan selesai (admin) */
+.queue-banner.done { background: #e9f9ef; border-color: #bfe8cf; color: #0f5f37; }
+.queue-banner.done:hover { background: #dcf3e5; color: #0f5f37; }
+/* Avatar inisial (tabel pengguna) */
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--sky); color: var(--blue); display: grid; place-items: center; font-weight: 800; flex: none; }
+
+/* Perbaikan logo: "Find" dan "IT" harus menempel */
+.brand { gap: 0; }
+.brand-pin { margin-right: .4rem; }
+
+/* Opsi di modal hapus pengguna */
+.hapus-opsi { background: #fff7f7; border: 1px solid #fbc7cc; border-radius: 12px; padding: .8rem 1rem .8rem 2.4rem; }

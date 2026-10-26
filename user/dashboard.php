@@ -63,7 +63,13 @@ require '../includes/header.php';
                   <?= csrf_field() ?><input type="hidden" name="id" value="<?= $r['id'] ?>">
                   <button class="btn btn-sm btn-outline-danger" title="Hapus" aria-label="Hapus"><i class="bi bi-trash"></i></button>
                 </form>
-              <?php else: ?>
+                            <?php else: ?>
+                <?php if ($r['status'] !== 'dikembalikan'): ?>
+                  <form method="post" action="<?= url('user/selesai.php') ?>" class="d-inline" data-confirm="Tandai &quot;<?= e($r['judul']) ?>&quot; sudah dikembalikan? Laporan akan hilang dari daftar pencarian.">
+                    <?= csrf_field() ?><input type="hidden" name="id" value="<?= $r['id'] ?>">
+                    <button class="btn btn-sm btn-success"><i class="bi bi-check2-circle me-1"></i>Sudah dikembalikan</button>
+                  </form>
+                <?php endif; ?>
                 <a class="btn btn-sm btn-light border" href="<?= url('detail.php?id=' . $r['id']) ?>" title="Lihat" aria-label="Lihat"><i class="bi bi-eye"></i></a>
               <?php endif; ?>
             </td>
@@ -73,6 +79,6 @@ require '../includes/header.php';
       </table>
     </div>
   </div>
-  <p class="text-muted small mt-3"><i class="bi bi-info-circle me-1"></i>Laporan yang sudah tayang tidak bisa diubah sendiri. Hubungi admin kalau ada yang perlu diperbaiki atau barangmu sudah ketemu.</p>
+  <p class="text-muted small mt-3"><i class="bi bi-info-circle me-1"></i>Laporan yang sudah tayang tidak bisa diubah sendiri. Kalau barangnya sudah kembali, klik <strong>Sudah dikembalikan</strong>: laporan hilang dari daftar pencarian dan admin akan merapikan datanya.</p>
 </div>
 <?php require '../includes/footer.php'; ?>

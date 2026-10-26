@@ -30,7 +30,7 @@ require 'includes/header.php';
         <ol class="steps">
           <li>Masuk, lalu buat laporan dengan status <span class="status status-inline status-ditemukan">Ditemukan</span>. Sertakan foto dan lokasi.</li>
           <li>Admin memeriksa laporanmu. Pantau statusnya di dashboard (menunggu, tayang, atau ditolak beserta alasannya).</li>
-          <li>Setelah tayang, pemilik menghubungimu. Kalau barang sudah diambil, admin mengubah status menjadi <span class="status status-inline status-dikembalikan">Dikembalikan</span>.</li>
+          <li>Setelah tayang, pemilik menghubungimu. Kalau barang sudah kembali, klik <strong>Sudah dikembalikan</strong> di dashboard-mu. Laporan otomatis hilang dari daftar pencarian.</li>
         </ol>
       </div>
     </div>
@@ -41,7 +41,7 @@ require 'includes/header.php';
     <div class="row g-3">
       <div class="col-md-4"><span class="status status-inline status-hilang">Hilang</span><p class="mt-2 mb-0">Pemilik sedang mencari barang ini.</p></div>
       <div class="col-md-4"><span class="status status-inline status-ditemukan">Ditemukan</span><p class="mt-2 mb-0">Barang sudah ada di tangan admin, menunggu pemiliknya.</p></div>
-      <div class="col-md-4"><span class="status status-inline status-dikembalikan">Dikembalikan</span><p class="mt-2 mb-0">Barang sudah kembali ke pemiliknya.</p></div>
+      <div class="col-md-4"><span class="status status-inline status-dikembalikan">Dikembalikan</span><p class="mt-2 mb-0">Barang sudah kembali. Laporan tidak lagi tampil di pencarian.</p></div>
     </div>
   </div>
 

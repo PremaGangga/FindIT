@@ -25,6 +25,7 @@ $s = ['hilang' => 0, 'ditemukan' => 0, 'dikembalikan' => 0];
 foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' GROUP BY status") as $r) $s[$r['status']] = (int)$r['n'];
 
 $nPending = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='pending'")['n'];
+$nSelesai = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' AND status='dikembalikan'")['n'];
 $judul = 'Dashboard admin';
 require '../includes/header.php';
 ?>
@@ -35,6 +36,7 @@ require '../includes/header.php';
       <p class="text-muted mb-0">Halo, <?= e(user()['nama']) ?>. Tambah, ubah, atau hapus laporan barang.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-pill btn-pill-outline" href="<?= url('admin/users.php') ?>"><i class="bi bi-people me-1"></i>Pengguna</a>
       <a class="btn btn-pill btn-pill-outline" href="<?= url('admin/verifikasi.php') ?>"><i class="bi bi-patch-check me-1"></i>Verifikasi<?= $nPending ? ' (' . $nPending . ')' : '' ?></a>
       <a class="btn btn-pill btn-pill-fill" href="<?= url('admin/barang_tambah.php') ?>"><i class="bi bi-plus-lg me-1"></i>Tambah laporan</a>
     </div>
@@ -49,6 +51,13 @@ require '../includes/header.php';
   <?php endif; ?>
 
   <div class="row g-3 mb-4">
+      <?php if ($nSelesai > 0 && $status !== 'dikembalikan'): ?>
+    <a class="queue-banner done" href="?status=dikembalikan">
+      <i class="bi bi-check2-circle"></i>
+      <span><strong><?= $nSelesai ?> laporan</strong> sudah dikembalikan dan tidak tampil lagi di pencarian. Hapus kalau datanya tidak diperlukan.</span>
+      <span class="ms-auto fw-bold">Lihat <i class="bi bi-arrow-right"></i></span>
+    </a>
+  <?php endif; ?>
     <div class="col-4"><div class="stat stat-hilang"><span><?= $s['hilang'] ?></span>Hilang</div></div>
     <div class="col-4"><div class="stat stat-ditemukan"><span><?= $s['ditemukan'] ?></span>Ditemukan</div></div>
     <div class="col-4"><div class="stat stat-dikembalikan"><span><?= $s['dikembalikan'] ?></span>Dikembalikan</div></div>

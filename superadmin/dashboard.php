@@ -18,7 +18,10 @@ require '../includes/header.php';
       <h1 class="page-title mb-1">Kelola admin</h1>
       <p class="text-muted mb-0">Halo, <?= e(user()['nama']) ?>. Atur siapa saja yang boleh mengelola laporan barang.</p>
     </div>
-    <a class="btn btn-primary-ink" href="<?= url('superadmin/admin_tambah.php') ?>"><i class="bi bi-person-plus me-1"></i>Tambah admin</a>
+        <div class="d-flex gap-2 flex-wrap">
+      <a class="btn btn-pill btn-pill-outline" href="<?= url('superadmin/users.php') ?>"><i class="bi bi-people me-1"></i>Lihat pengguna</a>
+      <a class="btn btn-pill btn-pill-fill" href="<?= url('superadmin/admin_tambah.php') ?>"><i class="bi bi-person-plus me-1"></i>Tambah admin</a>
+    </div>
   </div>
 
   <div class="row g-3 mb-4">

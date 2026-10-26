@@ -6,7 +6,7 @@ $b = db_one(
      LEFT JOIN kategori k ON k.id = b.kategori_id WHERE b.id = ?', 'i', [$id]
 );
 $u = user();
-$bolehLihat = $b && ($b['verifikasi'] === 'disetujui'
+$bolehLihat = $b && (($b['verifikasi'] === 'disetujui' && $b['status'] !== 'dikembalikan')
     || ($u && (in_array($u['role'], ['admin', 'superadmin'], true) || (int)$b['created_by'] === (int)$u['id'])));
 if (!$bolehLihat) {
     http_response_code(404);
