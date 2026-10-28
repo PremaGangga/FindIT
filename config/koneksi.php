@@ -120,7 +120,7 @@ function verifikasi_label($v) {
 }
 function kategori_icon($nama) {
     $m = ['Elektronik' => 'bi-laptop', 'Tas & Dompet' => 'bi-bag', 'Dokumen' => 'bi-file-earmark-text',
-          'Pakaian' => 'bi-tag', 'Aksesoris' => 'bi-watch', 'Lainnya' => 'bi-three-dots'];
+          'Pakaian' => 'bi-tag', 'Aksesoris' => 'bi-watch', 'Lainnya' => 'bi-box-seam'];
     return $m[$nama] ?? 'bi-box-seam';
 }
 // "Tas & Dompet" -> "tas-dompet" (dipakai untuk warna pill kategori di CSS)

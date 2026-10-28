@@ -109,13 +109,13 @@ $adaFilter = ($q !== '' || $kat || $status !== '');
     <?php endif; ?>
   <?php endif; ?>
 
-  <div class="cta-band">
-    <i class="bi bi-shield-check"></i>
+    <div class="cta-dark">
+    <span class="cta-ico"><i class="bi bi-shield-check"></i></span>
     <div class="flex-grow-1">
       <strong>Tidak menemukan barangmu?</strong>
-      <span>Buat laporan barang hilang atau barang temuan. Admin akan memeriksanya sebelum tayang.</span>
+      <span class="sub">Buat laporan barang hilang atau barang temuan. Admin akan memeriksanya sebelum tayang.</span>
     </div>
-    <a class="btn btn-pill btn-pill-fill" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Buat Laporan</a>
+    <a class="btn btn-pill btn-pill-white btn-pill-lg" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Buat Laporan</a>
   </div>
 </div>
 <?php require 'includes/footer.php'; ?>

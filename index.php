@@ -16,13 +16,17 @@ foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi = 'di
   <div class="container">
     <div class="row align-items-center g-4">
       <div class="col-lg-5">
-        <span class="eyebrow">Platform Barang Hilang dan Temuan</span>
         <h1 class="hero-title">Barang hilang?<br>Cari di <span>FindIT.</span></h1>
         <p class="hero-lead">Temukan informasi barang hilang dan barang temuan di lingkungan kampus melalui satu platform yang mudah digunakan.</p>
         <div class="d-flex flex-wrap gap-3">
           <a class="btn btn-pill btn-pill-fill btn-pill-lg" href="<?= url('barang.php') ?>"><i class="bi bi-search me-2"></i>Cari Barang <i class="bi bi-arrow-right ms-2"></i></a>
           <a class="btn btn-pill btn-pill-outline btn-pill-lg" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Lapor Barang</a>
         </div>
+        <ul class="hero-trust">
+          <li><i class="bi bi-check-circle-fill"></i>Gratis</li>
+          <li><i class="bi bi-check-circle-fill"></i>Diverifikasi admin</li>
+          <li><i class="bi bi-check-circle-fill"></i>Tanpa tatap muka</li>
+        </ul>
       </div>
 
       <div class="col-lg-4 col-md-6">
@@ -43,68 +47,72 @@ foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi = 'di
 </section>
 
 <div class="container">
-  <!-- Angka ringkas -->
-  <div class="stat-band">
-    <div><span class="num num-hilang"><?= $s['hilang'] ?></span> barang sedang dicari</div>
-    <div><span class="num num-ditemukan"><?= $s['ditemukan'] ?></span> barang temuan menunggu pemilik</div>
-    <div><span class="num num-kembali"><?= $s['dikembalikan'] ?></span> sudah kembali ke pemilik</div>
+  <div class="stat-band reveal">
+    <div class="sb-item"><span class="sb-ico sb-hilang"><i class="bi bi-search"></i></span><div><span class="num" data-count="<?= $s['hilang'] ?>"><?= $s['hilang'] ?></span>barang sedang dicari</div></div>
+    <div class="sb-item"><span class="sb-ico sb-ditemukan"><i class="bi bi-box-seam"></i></span><div><span class="num" data-count="<?= $s['ditemukan'] ?>"><?= $s['ditemukan'] ?></span>barang temuan menunggu pemilik</div></div>
+    <div class="sb-item"><span class="sb-ico sb-kembali"><i class="bi bi-check2-circle"></i></span><div><span class="num" data-count="<?= $s['dikembalikan'] ?>"><?= $s['dikembalikan'] ?></span>sudah kembali ke pemilik</div></div>
   </div>
+</div>
 
-  <!-- Cara kerja -->
-  <section class="home-section">
-    <div class="section-head">
+<section class="band-soft">
+  <div class="container">
+    <div class="section-head center reveal">
       <h2>Cara kerja FindIT</h2>
       <p>Tanpa perlu datang ke kantor admin. Cukup lapor lewat website.</p>
     </div>
-    <div class="row g-4">
-      <div class="col-md-4">
+    <div class="row g-4 how-row">
+      <div class="col-md-4 reveal" style="--d:.05s">
         <div class="how-step">
+          <span class="how-num">1</span>
           <span class="how-ico"><i class="bi bi-pencil-square"></i></span>
-          <h3>1. Buat laporan</h3>
+          <h3>Buat laporan</h3>
           <p>Daftar atau masuk, lalu isi nama barang, lokasi, tanggal, ciri-ciri, dan foto. Bisa untuk barang hilang maupun barang yang kamu temukan.</p>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 reveal" style="--d:.15s">
         <div class="how-step">
+          <span class="how-num">2</span>
           <span class="how-ico"><i class="bi bi-patch-check"></i></span>
-          <h3>2. Admin memverifikasi</h3>
+          <h3>Admin memverifikasi</h3>
           <p>Admin memeriksa laporanmu supaya informasi akurat dan bebas spam. Status laporan bisa kamu pantau di dashboard.</p>
         </div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-4 reveal" style="--d:.25s">
         <div class="how-step">
+          <span class="how-num">3</span>
           <span class="how-ico"><i class="bi bi-chat-dots"></i></span>
-          <h3>3. Hubungi dan kembalikan</h3>
-          <p>Setelah tayang, pemilik dan penemu saling menghubungi lewat kontak di halaman detail. Barang kembali, status diperbarui.</p>
+          <h3>Hubungi dan kembalikan</h3>
+          <p>Setelah tayang, pemilik dan penemu saling menghubungi lewat kontak di halaman detail. Barang kembali, laporan ditutup.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Laporan terbaru -->
+<div class="container">
   <section class="home-section">
-    <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
-      <div class="section-head mb-0"><h2>Laporan terbaru</h2><p>Barang yang baru dilaporkan di kampus.</p></div>
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3 reveal">
+      <div class="section-head mb-0"><h2>Laporan terbaru</h2><p class="mb-0">Barang yang baru dilaporkan di kampus.</p></div>
       <a class="btn btn-pill btn-pill-outline" href="<?= url('barang.php') ?>">Lihat semua barang <i class="bi bi-arrow-right ms-1"></i></a>
     </div>
     <?php if (!$terbaru): ?>
       <div class="empty-state"><i class="bi bi-inbox"></i><h3>Belum ada laporan</h3><p>Jadilah yang pertama melaporkan barang.</p></div>
     <?php else: ?>
-      <div class="row g-4">
-        <?php foreach ($terbaru as $b): ?>
-          <div class="col-sm-6 col-lg-3"><?php kartu_barang($b); ?></div>
+      <div class="row g-4 mt-1">
+        <?php foreach ($terbaru as $i => $b): ?>
+          <div class="col-sm-6 col-lg-3 reveal" style="--d:<?= $i * .08 ?>s"><?php kartu_barang($b); ?></div>
         <?php endforeach; ?>
       </div>
     <?php endif; ?>
   </section>
 
-  <div class="cta-band">
-    <i class="bi bi-shield-check"></i>
+  <div class="cta-dark reveal">
+    <span class="cta-ico"><i class="bi bi-shield-check"></i></span>
     <div class="flex-grow-1">
       <strong>Punya barang hilang atau menemukan barang?</strong>
-      <span>Bantu kami menghubungkan barang dengan pemiliknya. Laporanmu diperiksa admin sebelum tayang.</span>
+      <span class="sub">Bantu kami menghubungkan barang dengan pemiliknya. Laporanmu diperiksa admin sebelum tayang.</span>
     </div>
-    <a class="btn btn-pill btn-pill-fill" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Buat Laporan</a>
+    <a class="btn btn-pill btn-pill-white btn-pill-lg" href="<?= url('user/lapor.php') ?>"><i class="bi bi-plus-circle me-2"></i>Buat Laporan</a>
   </div>
 </div>
 

@@ -13,6 +13,7 @@ $hal    = basename($_SERVER['SCRIPT_NAME']);
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+    <script>document.documentElement.classList.add('js')</script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($judul) ?></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">

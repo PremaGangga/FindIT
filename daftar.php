@@ -34,9 +34,18 @@ $judul = 'Daftar';
 require 'includes/header.php';
 ?>
 <div class="container page-pad">
-  <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-5 col-xl-4">
-      <div class="form-card">
+  <div class="container auth-page">
+  <div class="auth-card">
+    <aside class="auth-aside">
+      <div class="brand-light"><i class="bi bi-geo-alt-fill"></i>FindIT</div>
+      <h2>Satu akun, satu langkah lebih dekat ke barangmu.</h2>
+      <ul>
+        <li><i class="bi bi-check-circle-fill"></i><span>Gratis dan cukup satu menit</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>Tidak perlu datang ke kantor admin</span></li>
+        <li><i class="bi bi-check-circle-fill"></i><span>Laporan terverifikasi, bebas spam</span></li>
+      </ul>
+    </aside>
+    <div class="auth-main">
         <h1 class="h3 mb-1">Buat akun</h1>
         <p class="text-muted mb-4">Daftar gratis untuk melaporkan barang hilang atau barang temuan.</p>
 
@@ -70,7 +79,6 @@ require 'includes/header.php';
           <button class="btn btn-primary-ink w-100" type="submit">Daftar</button>
         </form>
         <p class="text-center text-muted small mt-4 mb-0">Sudah punya akun? <a href="<?= url('login.php') ?>" class="fw-semibold">Masuk</a></p>
-      </div>
     </div>
   </div>
 </div>

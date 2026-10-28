@@ -31,10 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('catatan').value = '';
     });
   });
-});
 
-// Modal "Hapus pengguna": isi id, nama, dan jumlah laporan pengguna yang dipilih
-document.addEventListener('DOMContentLoaded', function () {
+  // Modal "Hapus pengguna": isi id, nama, dan jumlah laporan pengguna yang dipilih
   document.querySelectorAll('[data-hapus-user-id]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       const n = parseInt(btn.getAttribute('data-hapus-user-total') || '0', 10);
@@ -44,6 +42,63 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('hapus-laporan-n').textContent = n;
       cek.checked = false;
       cek.disabled = (n === 0);
+    });
+  });
+
+  // Bayangan navbar saat halaman di-scroll
+  const nav = document.querySelector('.site-nav');
+  if (nav) {
+    const cek = function () { nav.classList.toggle('scrolled', window.scrollY > 8); };
+    cek(); window.addEventListener('scroll', cek, { passive: true });
+  }
+
+  // Animasi muncul saat di-scroll (elemen ber-class "reveal")
+  const reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(function (el) { io.observe(el); });
+  } else {
+    reveals.forEach(function (el) { el.classList.add('in'); });
+  }
+
+  // Angka di beranda menghitung naik dari 0
+  // Pemakaian: <span data-count="12">12</span>
+  const counters = document.querySelectorAll('[data-count]');
+  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const co = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        const el = en.target, target = parseInt(el.getAttribute('data-count'), 10) || 0, t0 = performance.now(), dur = 900;
+        co.unobserve(el);
+        (function tick(now) {
+          const p = Math.min((now - t0) / dur, 1);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+      });
+    }, { threshold: 0.6 });
+    counters.forEach(function (el) { el.textContent = '0'; co.observe(el); });
+  }
+
+  // Tombol salin (tautan atau kontak)
+  // Pemakaian: <button data-copy="teks yang disalin">Salin</button>
+  document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const teks = btn.getAttribute('data-copy') === 'url' ? window.location.href : btn.getAttribute('data-copy');
+      const label = btn.innerHTML;
+      const selesai = function () {
+        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Tersalin';
+        setTimeout(function () { btn.innerHTML = label; }, 1800);
+      };
+      if (navigator.clipboard) { navigator.clipboard.writeText(teks).then(selesai); }
+      else {
+        const ta = document.createElement('textarea'); ta.value = teks; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); document.body.removeChild(ta); selesai();
+      }
     });
   });
 });

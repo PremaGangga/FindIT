@@ -2,7 +2,7 @@
 /** Kartu barang yang dipakai di beranda dan halaman daftar barang. */
 function kartu_barang($b) { ?>
   <article class="item-card">
-    <a class="item-photo" href="<?= url('detail.php?id=' . $b['id']) ?>" tabindex="-1" aria-hidden="true">
+    <a class="item-photo ph-<?= kategori_slug($b['kategori']) ?>" href="<?= url('detail.php?id=' . $b['id']) ?>" tabindex="-1" aria-hidden="true">
       <?php if ($b['foto']): ?>
         <img src="<?= url('assets/uploads/' . e($b['foto'])) ?>" alt="" loading="lazy">
       <?php else: ?>
