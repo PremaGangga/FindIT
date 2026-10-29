@@ -3,13 +3,20 @@ require '../includes/auth.php';
 wajib_role('admin');
 
 $tab = ($_GET['tab'] ?? 'pending') === 'ditolak' ? 'ditolak' : 'pending';
+
+// Tambahkan filter b.dihapus_admin = 0 pada query utama
 $rows = db_all(
     "SELECT b.*, k.nama AS kategori, u.nama AS pelapor, u.username
-     FROM barang b LEFT JOIN kategori k ON k.id = b.kategori_id LEFT JOIN users u ON u.id = b.created_by
-     WHERE b.verifikasi = ? ORDER BY b.created_at ASC, b.id ASC", 's', [$tab]
+     FROM barang b 
+     LEFT JOIN kategori k ON k.id = b.kategori_id 
+     LEFT JOIN users u ON u.id = b.created_by
+     WHERE b.verifikasi = ? AND b.dihapus_admin = 0 
+     ORDER BY b.created_at ASC, b.id ASC", 's', [$tab]
 );
-$nPending = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='pending'")['n'];
-$nDitolak = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='ditolak'")['n'];
+
+// Filter dihapus_admin = 0 pada hitungan counter badge
+$nPending = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='pending' AND dihapus_admin = 0")['n'];
+$nDitolak = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='ditolak' AND dihapus_admin = 0")['n'];
 
 $judul = 'Verifikasi laporan';
 require '../includes/header.php';

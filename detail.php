@@ -7,8 +7,15 @@ $b = db_one(
      LEFT JOIN kategori k ON k.id = b.kategori_id WHERE b.id = ?', 'i', [$id]
 );
 $u = user();
-$bolehLihat = $b && (($b['verifikasi'] === 'disetujui' && $b['status'] !== 'dikembalikan')
-    || ($u && (in_array($u['role'], ['admin', 'superadmin'], true) || (int)$b['created_by'] === (int)$u['id'])));
+
+// Cek hak akses melihat barang:
+// Publik hanya bisa lihat jika verifikasi disetujui, belum dikembalikan, dan BELUM dihapus admin.
+// Pemilik barang atau admin/superadmin tetap bisa akses jika barang tersebut di-soft delete.
+$bolehLihat = $b && (
+    ($b['verifikasi'] === 'disetujui' && $b['status'] !== 'dikembalikan' && (int)$b['dihapus_admin'] === 0)
+    || ($u && (in_array($u['role'], ['admin', 'superadmin'], true) || (int)$b['created_by'] === (int)$u['id']))
+);
+
 if (!$bolehLihat) {
     http_response_code(404);
     $judul = 'Barang tidak ditemukan';
@@ -24,17 +31,17 @@ require 'includes/header.php';
 
 $label = $b['status'] === 'hilang' ? 'Hilang pada' : 'Ditemukan pada';
 
-// Nomor HP di kolom kontak -> tombol WhatsApp (0812... atau +62812... diubah ke 62812...)
+// Nomor HP di kolom kontak -> tombol WhatsApp
 $wa = null;
 if (preg_match('/(?:\+?62|0)[\d\s\-]{8,14}\d/', (string)$b['kontak'], $m)) {
     $digits = preg_replace('/\D+/', '', $m[0]);
     $wa = ($digits[0] === '0') ? '62' . substr($digits, 1) : $digits;
 }
 
-// Laporan serupa: kategori sama, sudah tayang, masih aktif
+// Laporan serupa: kategori sama, disetujui, masih aktif, dan BELUM dihapus admin
 $serupa = db_all(
     "SELECT b.*, k.nama AS kategori FROM barang b LEFT JOIN kategori k ON k.id = b.kategori_id
-     WHERE b.kategori_id = ? AND b.id <> ? AND b.verifikasi = 'disetujui' AND b.status IN ('hilang','ditemukan')
+     WHERE b.kategori_id = ? AND b.id <> ? AND b.verifikasi = 'disetujui' AND b.status IN ('hilang','ditemukan') AND b.dihapus_admin = 0
      ORDER BY b.created_at DESC LIMIT 4", 'ii', [(int)$b['kategori_id'], $b['id']]
 );
 ?>
@@ -49,6 +56,12 @@ $serupa = db_all(
     <div class="alert alert-<?= $b['verifikasi'] === 'ditolak' ? 'danger' : 'warning' ?> mb-3">
       <strong>Laporan ini belum tampil untuk publik.</strong>
       <?= $b['verifikasi'] === 'ditolak' ? 'Ditolak admin' . ($b['catatan_admin'] ? ': ' . e($b['catatan_admin']) : '.') : 'Menunggu verifikasi admin.' ?>
+    </div>
+  <?php endif; ?>
+
+  <?php if ((int)$b['dihapus_admin'] === 1): ?>
+    <div class="alert alert-secondary mb-3">
+      <i class="bi bi-archive me-1"></i> <strong>Laporan ini telah diarsip/dihapus oleh admin dari katalog umum.</strong>
     </div>
   <?php endif; ?>
 

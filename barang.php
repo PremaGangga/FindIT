@@ -9,7 +9,11 @@ $kat    = (int)($_GET['kategori'] ?? 0);
 $status = $_GET['status'] ?? '';
 if (!in_array($status, ['hilang', 'ditemukan'], true)) $status = '';
 
-$where = ["b.verifikasi = 'disetujui'", "b.status IN ('hilang','ditemukan')"]; $types = ''; $params = [];
+// Tambahkan filter b.dihapus_admin = 0 pada kondisi dasar
+$where = ["b.verifikasi = 'disetujui'", "b.status IN ('hilang','ditemukan')", "b.dihapus_admin = 0"]; 
+$types = ''; 
+$params = [];
+
 if ($q !== '')      { $where[] = '(b.judul LIKE ? OR b.deskripsi LIKE ? OR b.lokasi LIKE ?)'; $types .= 'sss'; array_push($params, "%$q%", "%$q%", "%$q%"); }
 if ($kat > 0)       { $where[] = 'b.kategori_id = ?'; $types .= 'i'; $params[] = $kat; }
 if ($status !== '') { $where[] = 'b.status = ?';      $types .= 's'; $params[] = $status; }

@@ -12,20 +12,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['aksi'] ?? '') === 'kembali
 
 $q = trim($_GET['q'] ?? '');
 $status = $_GET['status'] ?? '';
-$where = ["b.verifikasi = 'disetujui'"]; $types = ''; $params = [];
-if ($q !== '') { $where[] = '(b.judul LIKE ? OR b.lokasi LIKE ?)'; $types .= 'ss'; $params[] = "%$q%"; $params[] = "%$q%"; }
-if (in_array($status, ['hilang', 'ditemukan', 'dikembalikan'], true)) { $where[] = 'b.status = ?'; $types .= 's'; $params[] = $status; }
+
+// Filter kondisi utama: Wajib disetujui DAN belum di-soft delete oleh admin
+$where = ["b.verifikasi = 'disetujui'", "b.dihapus_admin = 0"]; 
+$types = ''; 
+$params = [];
+
+if ($q !== '') { 
+    $where[] = '(b.judul LIKE ? OR b.lokasi LIKE ?)'; 
+    $types .= 'ss'; 
+    $params[] = "%$q%"; 
+    $params[] = "%$q%"; 
+}
+
+if (in_array($status, ['hilang', 'ditemukan', 'dikembalikan'], true)) { 
+    $where[] = 'b.status = ?'; 
+    $types .= 's'; 
+    $params[] = $status; 
+}
+
 $sqlWhere = 'WHERE ' . implode(' AND ', $where);
 
 $rows = db_all(
     "SELECT b.*, k.nama AS kategori FROM barang b LEFT JOIN kategori k ON k.id = b.kategori_id
      $sqlWhere ORDER BY b.created_at DESC, b.id DESC LIMIT 200", $types, $params
 );
-$s = ['hilang' => 0, 'ditemukan' => 0, 'dikembalikan' => 0];
-foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' GROUP BY status") as $r) $s[$r['status']] = (int)$r['n'];
 
-$nPending = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='pending'")['n'];
-$nSelesai = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' AND status='dikembalikan'")['n'];
+// Hitung statistik hanya untuk barang yang disetujui DAN belum di-soft delete
+$s = ['hilang' => 0, 'ditemukan' => 0, 'dikembalikan' => 0];
+foreach (db_all("SELECT status, COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' AND dihapus_admin = 0 GROUP BY status") as $r) {
+    $s[$r['status']] = (int)$r['n'];
+}
+
+$nPending = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='pending' AND dihapus_admin = 0")['n'];
+$nSelesai = (int)db_one("SELECT COUNT(*) AS n FROM barang WHERE verifikasi='disetujui' AND status='dikembalikan' AND dihapus_admin = 0")['n'];
+
 $judul = 'Dashboard admin';
 require '../includes/header.php';
 ?>
@@ -36,7 +57,7 @@ require '../includes/header.php';
       <p class="text-muted mb-0">Halo, <?= e(user()['nama']) ?>. Tambah, ubah, atau hapus laporan barang.</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-            <a class="btn btn-pill btn-pill-outline" href="<?= url('admin/users.php') ?>"><i class="bi bi-people me-1"></i>Pengguna</a>
+      <a class="btn btn-pill btn-pill-outline" href="<?= url('admin/users.php') ?>"><i class="bi bi-people me-1"></i>Pengguna</a>
       <a class="btn btn-pill btn-pill-outline" href="<?= url('admin/verifikasi.php') ?>"><i class="bi bi-patch-check me-1"></i>Verifikasi<?= $nPending ? ' (' . $nPending . ')' : '' ?></a>
       <a class="btn btn-pill btn-pill-fill" href="<?= url('admin/barang_tambah.php') ?>"><i class="bi bi-plus-lg me-1"></i>Tambah laporan</a>
     </div>
@@ -51,7 +72,7 @@ require '../includes/header.php';
   <?php endif; ?>
 
   <div class="row g-3 mb-4">
-      <?php if ($nSelesai > 0 && $status !== 'dikembalikan'): ?>
+    <?php if ($nSelesai > 0 && $status !== 'dikembalikan'): ?>
     <a class="queue-banner done" href="?status=dikembalikan">
       <i class="bi bi-check2-circle"></i>
       <span><strong><?= $nSelesai ?> laporan</strong> sudah dikembalikan dan tidak tampil lagi di pencarian. Hapus kalau datanya tidak diperlukan.</span>
